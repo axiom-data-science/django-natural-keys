@@ -140,8 +140,9 @@ class NaturalKeyModelSerializer(JSONFormModelSerializer):
                 validate_key=False,
             )
             field_kwargs = {}
-            if relation_info.model_field.null:
+            if not relation_info.model_field or relation_info.model_field.null:
                 field_kwargs['required'] = False
+                field_kwargs['allow_null'] = True
             return field_class, field_kwargs
 
         return super(NaturalKeyModelSerializer, self).build_nested_field(
@@ -198,6 +199,8 @@ class NaturalKeyModelSerializer(JSONFormModelSerializer):
             if name not in validated_data:
                 continue
             if isinstance(field, NaturalKeySerializer):
+                if fields[name].allow_null is True and validated_data[name] is None:
+                    continue
                 validated_data[name] = fields[name].create(
                     validated_data[name]
                 )
